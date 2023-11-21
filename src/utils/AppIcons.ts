@@ -1,0 +1,15 @@
+export const AppIcons = {
+    apple: require('../assets/icons/apple.png'),
+    back: require('../assets/icons/back.png'),
+    calendar: require('../assets/icons/calendar.png'),
+    check: require('../assets/icons/check.png'),
+    close_eye: require('../assets/icons/close_eye.png'),
+    eye: require('../assets/icons/eye.png'),
+    facebook: require('../assets/icons/facebook.png'),
+    google: require('../assets/icons/google.png'),
+    lock: require('../assets/icons/lock.png'),
+    mail: require('../assets/icons/mail.png'),
+    message: require('../assets/icons/message.png'),
+    user: require('../assets/icons/user.png'),
+    down_arrow: require('../assets/icons/down_arrow.png'),
+};
