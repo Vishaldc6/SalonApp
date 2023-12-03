@@ -1,77 +1,169 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, View, Image, Pressable } from 'react-native';
-import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
+import React, {useRef, useState} from 'react';
+import {
+  StyleSheet,
+  ScrollView,
+  View,
+  Image,
+  Pressable,
+  TextInput,
+} from 'react-native';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
 import CountryPicker from 'rn-country-picker';
 import DatePicker from 'react-native-date-picker';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import {useFormik} from 'formik';
+import * as Yup from 'yup';
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 
-import { Colors, useGlobalStyles } from '../../styles';
-import { CustomDropdownMenu, CustomHeader, CustomLoader, PrimaryCustomButton, PrimaryCustomTextInput } from '../../components';
-import { AppIcons, AppImages } from '../../utils';
+import {Colors, useGlobalStyles} from '../../styles';
+import {
+  CustomDropdownMenu,
+  CustomHeader,
+  CustomLoader,
+  PrimaryCustomButton,
+  PrimaryCustomTextInput,
+} from '../../components';
+import {AppIcons, AppImages} from '../../utils';
+import {useCustomNavigation} from '../../hooks';
+
+const FillProfileSchema = Yup.object().shape({
+  name: Yup.string()
+    .trim()
+    .min(3, '* please enetr valid name')
+    .required('* please enter name'),
+  email: Yup.string()
+    .trim()
+    .email('* please enter valid email')
+    .required('* please enter email'),
+  dob: Yup.date().required('* please choose date of birth'),
+  phoneNumber: Yup.string()
+    .trim()
+    .min(8, '* please enter valid phone number')
+    .required('* please enter phone number'),
+  gender: Yup.string(),
+});
 
 const FillProfileScreen = () => {
+  const styles = useStyles();
+  const globalStyles = useGlobalStyles();
+  const navigation = useCustomNavigation('AuthStack');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDateModal, setIsDateModal] = useState(false);
+  const [gender, setGender] = useState({
+    id: 0,
+    title: 'Male',
+  });
+  const [countryCode, setCountryCode] = useState<string>('91');
+  const nameFieldRef = useRef<TextInput>(null);
+  const emailFieldRef = useRef<TextInput>(null);
+  const phoneNumberFieldRef = useRef<TextInput>(null);
 
-    const styles = useStyles()
-    const globalStyles = useGlobalStyles()
-    const [isLoading, setIsLoading] = useState(false)
-    const [isDateModal, setIsDateModal] = useState(false)
-    const [gender, setGender] = useState()
-    const [countryCode, setCountryCode] = useState<string>("91");
+  const {
+    values,
+    errors,
+    touched,
+    handleChange,
+    handleSubmit,
+    handleBlur,
+    setFieldValue,
+    setFieldError,
+    resetForm,
+  } = useFormik({
+    initialValues: {
+      name: '',
+      email: '',
+      dob: '',
+      phoneNumber: '',
+      gender: '',
+    },
+    validationSchema: FillProfileSchema,
+    onSubmit: values => {
+      console.log(
+        '🚀 ~ file: FillProfileScreen.tsx:43 ~ FillProfileScreen ~ values:',
+        {values},
+      );
 
-    const genderMenu = [
-        {
-            id: 0, title: 'Male'
-        },
-        {
-            id: 1, title: 'Female'
-        },
-        {
-            id: 2, title: 'Other'
-        }
-    ];
+      setIsLoading(true);
 
-    return (
-        <View style={globalStyles.flexContainer}>
-            {isLoading && <CustomLoader />}
-            <CustomHeader title={'Fill Your Profile'} />
+      setTimeout(() => {
+        setIsLoading(false);
+        navigation.navigate('BottomTab', {
+          screen: 'HomeScreen',
+        });
+      }, 1000);
+    },
+  });
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={globalStyles.appContainer}>
+  const genderMenu = [
+    {
+      id: 0,
+      title: 'Male',
+    },
+    {
+      id: 1,
+      title: 'Female',
+    },
+    {
+      id: 2,
+      title: 'Other',
+    },
+  ];
 
-                <View style={styles.imageContainer}>
-                    <Image source={AppImages.user} style={styles.image} />
-                </View>
+  console.log({values, errors, touched});
 
-                <PrimaryCustomTextInput
-                    // ref={emailFieldRef}
-                    // value={''}
-                    onChangeText={(val) => console.log(val)}
-                    placeholder={'Enter Full Name'}
-                    leftIcon={AppIcons.user}
-                    returnKeyType={'next'}
-                // onSubmitEditing={() => passwordFieldRef?.current?.focus()}
-                />
-                <PrimaryCustomTextInput
-                    // ref={emailFieldRef}
-                    // value={''}
-                    onChangeText={(val) => console.log(val)}
-                    placeholder={'Enter Email'}
-                    leftIcon={AppIcons.mail}
-                    returnKeyType={'next'}
-                    keyboardType={'email-address'}
-                // onSubmitEditing={() => passwordFieldRef?.current?.focus()}
-                />
-                <Pressable onPress={() => setIsDateModal(true)}>
-                    <PrimaryCustomTextInput
-                        // ref={emailFieldRef}
-                        // value={''}
-                        onChangeText={(val) => console.log(val)}
-                        placeholder={'Choose Date of Birth'}
-                        leftIcon={AppIcons.calendar}
-                        editable={false}
-                    />
-                </Pressable>
+  return (
+    <View style={globalStyles.flexContainer}>
+      {isLoading && <CustomLoader />}
+      <CustomHeader
+        title={'Fill Your Profile'}
+        canGoBack
+        onBack={() => navigation.goBack()}
+      />
 
-                {/* <CountryPicker
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: wp(4),
+        }}>
+        <View style={styles.imageContainer}>
+          <Image source={AppImages.user} style={styles.image} />
+        </View>
+
+        <PrimaryCustomTextInput
+          ref={nameFieldRef}
+          value={values.name}
+          onChangeText={handleChange('name')}
+          placeholder={'Enter Full Name'}
+          leftIcon={AppIcons.user}
+          returnKeyType={'next'}
+          onSubmitEditing={() => emailFieldRef?.current?.focus()}
+          errorText={touched.name ? errors.name : ''}
+        />
+        <PrimaryCustomTextInput
+          ref={emailFieldRef}
+          value={values.email}
+          onChangeText={handleChange('email')}
+          placeholder={'Enter Email'}
+          leftIcon={AppIcons.mail}
+          returnKeyType={'next'}
+          keyboardType={'email-address'}
+          onSubmitEditing={() => phoneNumberFieldRef?.current?.focus()}
+          errorText={touched.email ? errors.email : ''}
+        />
+        <Pressable onPress={() => setIsDateModal(true)}>
+          <PrimaryCustomTextInput
+            value={values.dob}
+            placeholder={'Choose Date of Birth'}
+            leftIcon={AppIcons.calendar}
+            editable={false}
+            errorText={touched.dob ? errors.dob : ''}
+          />
+        </Pressable>
+
+        {/* <CountryPicker
                     disable={false}
                     animationType={"slide"}
                     language="en"
@@ -117,96 +209,102 @@ const FillProfileScreen = () => {
                     selectedValue={setCountryCode}
                 /> */}
 
-                <PrimaryCustomTextInput
-                    containerStyle={{
-                        // backgroundColor: 'red',
-                        paddingHorizontal: wp(3)
-                    }}
-                    leftComponent={
-                        // need to changes in library
-                        <CountryPicker
-                            disable={false}
-                            selectedValue={setCountryCode}
-                            hideCountryCode
-                            searchBarPlaceHolder={'Select your country'}
-                            countryFlagStyle={{
-                                width: wp(8),
-                                height: wp(6),
-                            }}
-                        // containerStyle={{
-                        //     // backgroundColor: 'yellow',
-                        // }}
-                        // dropDownImageStyle={{
-                        //     // marginLeft: wp(2)
-                        // }}
-                        // searchBarContainerStyle={{
-                        //     // backgroundColor: 'red'
-                        // }}
-                        // searchBarStyle={{
-                        //     backgroundColor: 'yellow'
-                        // }}
-                        // hideCountryFlag
-                        // backButtonImage={AppIcons.back}
-                        />}
-                    placeholder={'Enter Phone Number'}
-                />
+        <PrimaryCustomTextInput
+          ref={phoneNumberFieldRef}
+          value={values.phoneNumber}
+          onChangeText={handleChange('phoneNumber')}
+          containerStyle={{
+            // backgroundColor: 'red',
+            paddingHorizontal: wp(3),
+          }}
+          leftComponent={
+            // need to changes in library
+            <CountryPicker
+              disable={false}
+              selectedValue={setCountryCode}
+              hideCountryCode
+              searchBarPlaceHolder={'Select your country'}
+              countryFlagStyle={{
+                width: wp(8),
+                height: wp(6),
+              }}
+              // containerStyle={{
+              //     // backgroundColor: 'yellow',
+              // }}
+              // dropDownImageStyle={{
+              //     // marginLeft: wp(2)
+              // }}
+              // searchBarContainerStyle={{
+              //     // backgroundColor: 'red'
+              // }}
+              // searchBarStyle={{
+              //     backgroundColor: 'yellow'
+              // }}
+              // hideCountryFlag
+              // backButtonImage={AppIcons.back}
+            />
+          }
+          placeholder={'Enter Phone Number'}
+          keyboardType={'number-pad'}
+          errorText={touched.phoneNumber ? errors.phoneNumber : ''}
+        />
 
-                <CustomDropdownMenu
-                    data={genderMenu}
-                    selectedItem={gender}
-                    onSelectItem={(item) => {
-                        console.log('item = > ', { item })
-                        setGender(item)
-                    }}
-                    placeholderText={'Select Gender'}
+        <CustomDropdownMenu
+          data={genderMenu}
+          selectedItem={gender}
+          onSelectItem={item => {
+            console.log('item = > ', {item});
+            setGender(item);
+            handleChange('gender')(item.title);
+          }}
+          placeholderText={'Select Gender'}
+        />
 
-                />
+        <PrimaryCustomButton
+          title={'Save Profile'}
+          containerStyle={{
+            marginVertical: hp(2),
+            marginBottom: hp(15),
+            elevation: 4,
+          }}
+          onPress={() => handleSubmit()}
+        />
 
-                <PrimaryCustomButton
-                    title={'Save Profile'}
-                    containerStyle={{
-                        marginVertical: hp(2),
-                        elevation: 4
-                    }}
-                    titleStyle={{
-                        color: Colors.PRIMARY_BACKGROUND
-                    }}
-                    onPress={() => console.log('Save profile')}
-                />
-
-
-                <DatePicker
-                    date={new Date()}
-                    modal
-                    open={isDateModal}
-                    mode={'date'}
-                    onCancel={() => setIsDateModal(false)}
-                    onConfirm={() => setIsDateModal(false)}
-                    androidVariant={'iosClone'}
-                    title={null}
-                />
-
-            </ScrollView>
-        </View>
-    )
+        <DatePicker
+          date={new Date()}
+          modal
+          open={isDateModal}
+          mode={'date'}
+          onCancel={() => setIsDateModal(false)}
+          onConfirm={date => {
+            console.log({date});
+            setIsDateModal(false);
+            handleChange('dob')(date.toDateString());
+          }}
+          title={null}
+          maximumDate={new Date()}
+        />
+      </ScrollView>
+    </View>
+  );
 };
 
 export default FillProfileScreen;
 
 const useStyles = () => {
-    return StyleSheet.create({
-        imageContainer: {
-            backgroundColor: Colors.PRIMARY,
-            height: wp(25),
-            width: wp(25),
-            borderRadius: wp(50),
-            alignSelf: 'center'
-        },
-        image: {
-            resizeMode: 'contain',
-            borderRadius: wp(50),
-            height: wp(25),
-            width: wp(25)
-        }
-    });
+  return StyleSheet.create({
+    imageContainer: {
+      backgroundColor: Colors.PRIMARY,
+      height: wp(25),
+      width: wp(25),
+      borderRadius: wp(50),
+      alignSelf: 'center',
+    },
+    image: {
+      resizeMode: 'contain',
+      borderRadius: wp(50),
+      height: wp(25),
+      width: wp(25),
+    },
+  });
 };

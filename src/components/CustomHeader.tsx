@@ -1,50 +1,65 @@
-import React, { memo } from 'react';
-import { StyleSheet, View, StatusBar, TouchableOpacity, Image } from 'react-native';
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import React, {memo} from 'react';
+import {
+  StyleSheet,
+  View,
+  StatusBar,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
-import { AppIcons } from '../utils';
-import { FontSizes, useGlobalStyles } from '../styles';
+import {AppIcons} from '../utils';
+import {FontSizes, useGlobalStyles} from '../styles';
 import BaseText from './BaseText';
 
 interface CustomHeaderProps {
-  title?: string
+  title?: string;
+  canGoBack?: boolean;
+  onBack?: () => void;
 }
 
-const CustomHeader = ({ title }: CustomHeaderProps) => {
-
-  const styles = useStyles()
-  const globalStyles = useGlobalStyles()
+const CustomHeader = ({title, canGoBack, onBack}: CustomHeaderProps) => {
+  const styles = useStyles();
+  const globalStyles = useGlobalStyles();
 
   return (
     <View style={styles.headerContainer}>
-      <TouchableOpacity>
-        <Image source={AppIcons.back} style={styles.backIcon} resizeMode='cover' />
-      </TouchableOpacity>
+      {canGoBack && (
+        <TouchableOpacity onPress={onBack}>
+          <Image
+            source={AppIcons.back}
+            style={styles.backIcon}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
+      )}
       {title && <BaseText style={styles.title}>{title}</BaseText>}
     </View>
-  )
-}
+  );
+};
 
-export default memo(CustomHeader)
+export default memo(CustomHeader);
 
 const useStyles = () => {
-
   return StyleSheet.create({
     headerContainer: {
       paddingTop: StatusBar.currentHeight,
-      height: '12%',
+      height: hp(12),
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: wp(4)
+      paddingHorizontal: wp(4),
     },
     backIcon: {
       width: wp(4),
-      height: wp(8)
+      height: wp(8),
     },
     title: {
       fontSize: FontSizes.FONT_SIZE_18,
       marginHorizontal: wp(3),
-      fontWeight: '500'
-    }
+      fontWeight: '500',
+    },
   });
 };
