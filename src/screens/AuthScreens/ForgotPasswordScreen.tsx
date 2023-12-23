@@ -16,6 +16,7 @@ import {
 import OtpInputs from 'react-native-otp-inputs';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
+import {RouteProp, useRoute} from '@react-navigation/native';
 
 import {Colors, FontSizes, useGlobalStyles} from '../../styles';
 import {
@@ -28,8 +29,16 @@ import {
   PrimaryCustomButton,
   PrimaryCustomTextInput,
 } from '../../components';
-import {AppIcons, AppImages, AsyncStorageKey, setStorage} from '../../utils';
+import {
+  AppIcons,
+  AppImages,
+  AsyncStorageKey,
+  maskedEmail,
+  maskedPhonnumber,
+  setStorage,
+} from '../../utils';
 import {useCustomNavigation} from '../../hooks';
+import {AuthStackParamList} from '../../types/RootStackType';
 
 interface ContactOptionsType {
   id: number;
@@ -62,8 +71,11 @@ const ForgotPasswordScreen = () => {
   const styles = useStyles();
   const globalStyles = useGlobalStyles();
   const navigation = useCustomNavigation('AuthStack');
+  const route =
+    useRoute<RouteProp<AuthStackParamList, 'ForgotPasswordScreen'>>();
   const [isChecked, setIsChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isModalLoading, setIsModalLoading] = useState(false);
   const [isModel, setIsModel] = useState(false);
   const [resendTime, setResendTime] = useState(300);
   const [screenStatus, setScreenStatus] = useState<
@@ -81,17 +93,7 @@ const ForgotPasswordScreen = () => {
   const passwordFieldRef = useRef<TextInput>(null);
   const confirmPasswordFieldRef = useRef<TextInput>(null);
 
-  const {
-    values,
-    errors,
-    touched,
-    handleChange,
-    handleSubmit,
-    handleBlur,
-    setFieldValue,
-    setFieldError,
-    resetForm,
-  } = useFormik({
+  const {values, errors, touched, handleChange, handleSubmit} = useFormik({
     initialValues: {
       otpCode: '',
       password: '',
@@ -107,15 +109,24 @@ const ForgotPasswordScreen = () => {
 
       if (isChecked) {
         // save user updated password
-        // setStorage(AsyncStorageKey.REMEMBER_AUTH, {email:'olderEmail',password:'newPassword'})
+        setStorage(AsyncStorageKey.REMEMBER_AUTH, {
+          email: route.params?.email,
+          password: values.password,
+        });
       }
 
       setIsLoading(true);
 
       setTimeout(() => {
         setIsModel(true);
+        setIsModalLoading(true);
         setIsLoading(false);
       }, 1000);
+      setTimeout(() => {
+        setIsModalLoading(false);
+        setIsModel(false);
+        navigation.reset({index: 0, routes: [{name: 'BottomTab'}]});
+      }, 3000);
     },
   });
 
@@ -125,14 +136,14 @@ const ForgotPasswordScreen = () => {
       key: 'sms',
       title: 'via SMS :',
       icon: AppIcons.message,
-      value: '+91 12*** ***89',
+      value: maskedPhonnumber('+91 12345 67890'),
     },
     {
       id: 1,
       key: 'email',
       title: 'via Email :',
       icon: AppIcons.mail,
-      value: 'test****er@yopmail.com',
+      value: maskedEmail(route.params?.email ?? ''),
     },
   ];
 
@@ -245,30 +256,10 @@ const ForgotPasswordScreen = () => {
               inputMode={'numeric'}
               returnKeyType={'done'}
               keyboardType={'phone-pad'}
-              style={{
-                marginVertical: hp(5),
-                flexDirection: 'row',
-                justifyContent: 'space-around',
-              }}
-              inputStyles={{
-                textAlign: 'center',
-                color: Colors.PRIMARY_TEXT,
-              }}
-              inputContainerStyles={{
-                backgroundColor: Colors.INPUT_BACKGROUND,
-                borderRadius: hp(2),
-                width: wp(15),
-                height: wp(15),
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1,
-                borderColor: Colors.TRANSPARENT,
-              }}
-              focusStyles={{
-                backgroundColor: Colors.INPUT_FOCUSED_BACKGROUND,
-                borderColor: Colors.PRIMARY,
-                borderWidth: 1,
-              }}
+              style={styles.otpStyle}
+              inputStyles={styles.otpInputStyle}
+              inputContainerStyles={styles.otpInputContainerStyle}
+              focusStyles={styles.otpFocusStyle}
             />
 
             {resendTime ? (
@@ -354,7 +345,7 @@ const ForgotPasswordScreen = () => {
           subTitle={
             'Your account is ready to use. you will be redirected to the home page in a few seconds.'
           }
-          isLoading
+          isLoading={isModalLoading}
           dismissAction={() => setIsModel(false)}
         />
       )}
@@ -405,6 +396,30 @@ const useStyles = () => {
     resendCode: {
       color: Colors.PRIMARY,
       textDecorationLine: 'underline',
+    },
+    otpStyle: {
+      marginVertical: hp(5),
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+    },
+    otpInputStyle: {
+      textAlign: 'center',
+      color: Colors.PRIMARY_TEXT,
+    },
+    otpInputContainerStyle: {
+      backgroundColor: Colors.INPUT_BACKGROUND,
+      borderRadius: hp(2),
+      width: wp(15),
+      height: wp(15),
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: Colors.TRANSPARENT,
+    },
+    otpFocusStyle: {
+      backgroundColor: Colors.INPUT_FOCUSED_BACKGROUND,
+      borderColor: Colors.PRIMARY,
+      borderWidth: 1,
     },
   });
 };

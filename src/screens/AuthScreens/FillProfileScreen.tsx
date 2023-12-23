@@ -6,6 +6,7 @@ import {
   Image,
   Pressable,
   TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import {
   heightPercentageToDP as hp,
@@ -15,7 +16,7 @@ import CountryPicker from 'rn-country-picker';
 import DatePicker from 'react-native-date-picker';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 import {Colors, useGlobalStyles} from '../../styles';
 import {
@@ -40,7 +41,7 @@ const FillProfileSchema = Yup.object().shape({
   dob: Yup.date().required('* please choose date of birth'),
   phoneNumber: Yup.string()
     .trim()
-    .min(8, '* please enter valid phone number')
+    .min(10, '* please enter valid phone number')
     .required('* please enter phone number'),
   gender: Yup.string(),
 });
@@ -55,7 +56,8 @@ const FillProfileScreen = () => {
     id: 0,
     title: 'Male',
   });
-  const [countryCode, setCountryCode] = useState<string>('91');
+  const [countryCode, setCountryCode] = useState<string>('+91');
+  const [imageUrl, setImageUrl] = useState<string>('');
   const nameFieldRef = useRef<TextInput>(null);
   const emailFieldRef = useRef<TextInput>(null);
   const phoneNumberFieldRef = useRef<TextInput>(null);
@@ -89,9 +91,7 @@ const FillProfileScreen = () => {
 
       setTimeout(() => {
         setIsLoading(false);
-        navigation.navigate('BottomTab', {
-          screen: 'HomeScreen',
-        });
+        navigation.reset({index: 0, routes: [{name: 'BottomTab'}]});
       }, 1000);
     },
   });
@@ -111,7 +111,14 @@ const FillProfileScreen = () => {
     },
   ];
 
-  console.log({values, errors, touched});
+  const imagePicker = () => {
+    launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+    }).then(res => {
+      res?.assets?.length && setImageUrl(res?.assets[0]?.uri ?? '');
+    });
+  };
 
   return (
     <View style={globalStyles.flexContainer}>
@@ -129,7 +136,16 @@ const FillProfileScreen = () => {
           paddingHorizontal: wp(4),
         }}>
         <View style={styles.imageContainer}>
-          <Image source={AppImages.user} style={styles.image} />
+          <Image
+            source={imageUrl ? {uri: imageUrl} : AppImages.user}
+            style={styles.image}
+          />
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.addImage}
+            onPress={imagePicker}>
+            <Image source={AppIcons.close} style={styles.addIcon} />
+          </TouchableOpacity>
         </View>
 
         <PrimaryCustomTextInput
@@ -220,14 +236,11 @@ const FillProfileScreen = () => {
           leftComponent={
             // need to changes in library
             <CountryPicker
-              disable={false}
+              disable={true}
               selectedValue={setCountryCode}
               hideCountryCode
               searchBarPlaceHolder={'Select your country'}
-              countryFlagStyle={{
-                width: wp(8),
-                height: wp(6),
-              }}
+              countryFlagStyle={styles.countryFlagStyle}
               // containerStyle={{
               //     // backgroundColor: 'yellow',
               // }}
@@ -253,7 +266,6 @@ const FillProfileScreen = () => {
           data={genderMenu}
           selectedItem={gender}
           onSelectItem={item => {
-            console.log('item = > ', {item});
             setGender(item);
             handleChange('gender')(item.title);
           }}
@@ -262,11 +274,7 @@ const FillProfileScreen = () => {
 
         <PrimaryCustomButton
           title={'Save Profile'}
-          containerStyle={{
-            marginVertical: hp(2),
-            marginBottom: hp(15),
-            elevation: 4,
-          }}
+          containerStyle={styles.buttonContainer}
           onPress={() => handleSubmit()}
         />
 
@@ -277,7 +285,6 @@ const FillProfileScreen = () => {
           mode={'date'}
           onCancel={() => setIsDateModal(false)}
           onConfirm={date => {
-            console.log({date});
             setIsDateModal(false);
             handleChange('dob')(date.toDateString());
           }}
@@ -305,6 +312,34 @@ const useStyles = () => {
       borderRadius: wp(50),
       height: wp(25),
       width: wp(25),
+    },
+    addImage: {
+      backgroundColor: Colors.PRIMARY,
+      borderRadius: wp(5),
+      borderColor: Colors.WHITE,
+      borderWidth: 2,
+      padding: wp(2),
+      position: 'absolute',
+      right: 0,
+      bottom: 0,
+    },
+    addIcon: {
+      transform: [
+        {
+          rotate: '45deg',
+        },
+      ],
+      height: wp(3),
+      width: wp(3),
+    },
+    countryFlagStyle: {
+      width: wp(8),
+      height: wp(6),
+    },
+    buttonContainer: {
+      marginVertical: hp(2),
+      marginBottom: hp(15),
+      elevation: 4,
     },
   });
 };

@@ -11,6 +11,10 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
 import {Colors, FontSizes, useGlobalStyles} from '../../styles';
 import {BaseText, CustomHeader, PrimaryCustomButton} from '../../components';
@@ -25,30 +29,53 @@ interface AuthButtonsType {
 }
 
 export const AuthButtons: AuthButtonsType[] = [
-  {
-    id: 1,
-    title: 'Continue with Facebook',
-    icon: AppIcons.facebook,
-    onPress: () => console.log('Facebook'),
-  },
+  // {
+  //   id: 1,
+  //   title: 'Continue with Facebook',
+  //   icon: AppIcons.facebook,
+  //   onPress: () => console.log('Facebook'),
+  // },
   {
     id: 2,
     title: 'Continue with Google',
     icon: AppIcons.google,
     onPress: () => console.log('Google'),
   },
-  {
-    id: 3,
-    title: 'Continue with Apple',
-    icon: AppIcons.apple,
-    onPress: () => console.log('Apple'),
-  },
+  // {
+  //   id: 3,
+  //   title: 'Continue with Apple',
+  //   icon: AppIcons.apple,
+  //   onPress: () => console.log('Apple'),
+  // },
 ];
+
+GoogleSignin.configure({
+  webClientId:
+    '887563966645-ac2de4kpjfdi35l000428pgkgqgvfv4b.apps.googleusercontent.com',
+});
 
 const InitialAuthScreen = () => {
   const styles = useStyles();
   const globalStyles = useGlobalStyles();
   const navigation = useCustomNavigation('AuthStack');
+
+  const googleSignin = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      console.log({userInfo});
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('user cancelled the login flow');
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        console.log('operation (e.g. sign in) is in progress already');
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        console.log('play services not available or outdated');
+      } else {
+        console.log('some other error happened');
+      }
+    }
+  };
 
   return (
     <View style={globalStyles.flexContainer}>
@@ -63,7 +90,11 @@ const InitialAuthScreen = () => {
         {AuthButtons.map(item => (
           <TouchableOpacity
             style={styles.authButtonContainer}
-            onPress={item.onPress}>
+            onPress={item.onPress}
+            // onPress={() => {
+            //   item.id === 2 ? googleSignin() : null;
+            // }}
+          >
             <Image source={item.icon} style={styles.authIcon} />
             <BaseText style={{fontSize: FontSizes.FONT_SIZE_12}}>
               {item.title}
@@ -95,7 +126,14 @@ const InitialAuthScreen = () => {
           {"Don't have an account?"}&nbsp;
           <BaseText
             style={{color: Colors.PRIMARY}}
-            onPress={() => console.log('Sign up')}>
+            onPress={() =>
+              navigation.navigate('AuthStack', {
+                screen: 'AuthScreen',
+                params: {
+                  type: 'SIGN_UP',
+                },
+              })
+            }>
             &nbsp;{'Sign up'}
           </BaseText>
         </BaseText>

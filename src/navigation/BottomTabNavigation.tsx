@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, Image, ImageSourcePropType} from 'react-native';
+import {StyleSheet, Image, ImageSourcePropType, View} from 'react-native';
 import {
   BottomTabNavigationOptions,
   createBottomTabNavigator,
@@ -26,20 +26,23 @@ const BottomTabNavigation = () => {
       headerTitle: title,
       tabBarLabel: title,
       tabBarIcon: ({focused, size}) => (
-        <Image
-          source={icon}
-          style={{
-            width: size,
-            height: size,
-            tintColor: focused ? Colors.PRIMARY : Colors.TAB_ICON,
-          }}
-        />
+        <>
+          {focused && <View style={styles.activeTabDot} />}
+          <Image
+            source={icon}
+            style={{
+              width: size,
+              height: size,
+              tintColor: focused ? Colors.PRIMARY : Colors.TAB_ICON,
+            }}
+          />
+        </>
       ),
     };
   }
 
   return (
-    <Tab.Navigator>
+    <Tab.Navigator screenOptions={{headerShown: false}}>
       <Tab.Screen
         name={'HomeScreen'}
         component={HomeScreen}
@@ -72,4 +75,11 @@ const BottomTabNavigation = () => {
 
 export default BottomTabNavigation;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  activeTabDot: {
+    borderColor: Colors.PRIMARY,
+    borderRadius: 10,
+    borderWidth: 3,
+    top: -5,
+  },
+});

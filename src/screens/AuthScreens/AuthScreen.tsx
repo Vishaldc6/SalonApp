@@ -13,6 +13,7 @@ import {
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {useFormik} from 'formik';
 import * as Yup from 'yup';
+import {RouteProp, useRoute} from '@react-navigation/native';
 
 import {Colors, FontSizes, useGlobalStyles} from '../../styles';
 import {
@@ -23,15 +24,10 @@ import {
   PrimaryCustomButton,
   PrimaryCustomTextInput,
 } from '../../components';
-import {
-  AppIcons,
-  AppImages,
-  AsyncStorageKey,
-  getStorage,
-  setStorage,
-} from '../../utils';
+import {AppIcons, AsyncStorageKey, getStorage, setStorage} from '../../utils';
 import {AuthButtons} from './InitialAuthScreen';
 import useCustomNavigation from './../../hooks/useCustomNavigation';
+import {AuthStackParamList} from '../../types/RootStackType';
 
 const AuthSchema = Yup.object().shape({
   email: Yup.string()
@@ -67,6 +63,7 @@ const AuthScreen = () => {
   const styles = useStyles();
   const globalStyles = useGlobalStyles();
   const navigation = useCustomNavigation('AuthStack');
+  const {params} = useRoute<RouteProp<AuthStackParamList, 'AuthScreen'>>();
   const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [screenType, setScreenType] = useState<'SIGN_IN' | 'SIGN_UP'>(
@@ -81,9 +78,9 @@ const AuthScreen = () => {
     touched,
     handleChange,
     handleSubmit,
-    handleBlur,
     setFieldValue,
     resetForm,
+    setFieldTouched,
   } = useFormik({
     initialValues: {
       email: '',
@@ -109,6 +106,12 @@ const AuthScreen = () => {
   });
 
   useEffect(() => {
+    if (params?.type === 'SIGN_UP') {
+      setScreenType('SIGN_UP');
+    }
+  }, []);
+
+  useEffect(() => {
     if (screenType === 'SIGN_IN') {
       getRememberedAuth();
     } else {
@@ -119,6 +122,7 @@ const AuthScreen = () => {
 
   // get remembered user credentials
   const getRememberedAuth = () => {
+    setIsLoading(true);
     getStorage(AsyncStorageKey.REMEMBER_AUTH)
       .then((res: any) => {
         console.log({res});
@@ -127,9 +131,11 @@ const AuthScreen = () => {
           setFieldValue('password', res?.password);
           setIsChecked(true);
         }
+        setIsLoading(false);
       })
       .catch(e => {
         console.log('🚀 ~ file: AuthScreen.tsx:88 ~ getStorage ~ e:', {e});
+        setIsLoading(false);
       });
   };
 
@@ -184,11 +190,18 @@ const AuthScreen = () => {
         {screenType === 'SIGN_IN' && (
           <BaseText
             style={styles.forgotPassword}
-            onPress={() =>
-              navigation.navigate('AuthStack', {
-                screen: 'ForgotPasswordScreen',
-              })
-            }>
+            onPress={() => {
+              if (errors.email === undefined && values.email !== '') {
+                navigation.navigate('AuthStack', {
+                  screen: 'ForgotPasswordScreen',
+                  params: {
+                    email: values.email,
+                  },
+                });
+              } else {
+                setFieldTouched('email');
+              }
+            }}>
             {'Forgot password ?'}
           </BaseText>
         )}

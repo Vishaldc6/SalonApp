@@ -1,6 +1,7 @@
 const Colors = {
   // PRIMARY: '#FF9009',
   PRIMARY: '#4bcbd0',
+  // PRIMARY: '#5f8cff',
   SECONDARY: '',
 
   PRIMARY_TEXT: '#000000',
@@ -10,7 +11,8 @@ const Colors = {
 
   TAB_ICON: '#b0b0b0',
   INPUT_BACKGROUND: '#00000010',
-  INPUT_FOCUSED_BACKGROUND: '#4bcbd010',
+  INPUT_FOCUSED_BACKGROUND: '#4bcbd020',
+  // INPUT_FOCUSED_BACKGROUND: '#5f8cff20',
   DROPDOWN_MENU_BACKGROUND: '#EAEAEA',
 
   ERROR_TEXT: '#FF0000',

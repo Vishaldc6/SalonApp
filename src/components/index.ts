@@ -5,6 +5,8 @@ import CustomHeader from './CustomHeader';
 import CustomLoader from './CustomLoader';
 import CustomModal from './CustomModal';
 import CustomOTPFieldComponent from './CustomOTPFieldComponent';
+import CustomRadioButton from './CustomRadioButton';
+import CustomSwitch from './CustomSwitch';
 import PrimaryCustomButton from './PrimaryCustomButton';
 import PrimaryCustomTextInput from './PrimaryCustomTextInput';
 
@@ -16,6 +18,8 @@ export {
   CustomLoader,
   CustomModal,
   CustomOTPFieldComponent,
+  CustomRadioButton,
+  CustomSwitch,
   PrimaryCustomButton,
   PrimaryCustomTextInput,
 };

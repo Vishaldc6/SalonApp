@@ -11,6 +11,10 @@ import {Colors} from '../styles';
 import {RootStackParamList} from '../types/RootStackType';
 import AuthStackNavigation from './AuthStackNavigation';
 import BottomTabNavigation from './BottomTabNavigation';
+import FillProfileScreen from '../screens/AuthScreens/FillProfileScreen';
+import SettingScreen from '../screens/SettingScreen';
+import LanguageScreen from '../screens/LanguageScreen';
+import InviteFriendsScreen from '../screens/InviteFriendsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -30,6 +34,16 @@ const AppNavigation = () => {
         screenOptions={{headerShown: false}}>
         <Stack.Screen name={'AuthStack'} component={AuthStackNavigation} />
         <Stack.Screen name={'BottomTab'} component={BottomTabNavigation} />
+        <Stack.Screen
+          name={'EditProfileScreen'}
+          component={FillProfileScreen}
+        />
+        <Stack.Screen name={'SettingScreen'} component={SettingScreen} />
+        <Stack.Screen name={'LanguageScreen'} component={LanguageScreen} />
+        <Stack.Screen
+          name={'InviteFriendsScreen'}
+          component={InviteFriendsScreen}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
